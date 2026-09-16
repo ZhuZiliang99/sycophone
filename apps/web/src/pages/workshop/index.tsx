@@ -1,4 +1,4 @@
-export default function Workshop() {
+export function Workshop() {
     return (
         <div>
             <h1>Workshop</h1>

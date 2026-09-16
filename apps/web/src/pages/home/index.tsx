@@ -1,12 +1,11 @@
 import './index.css'
+import{ useNavigate } from 'react-router-dom'
+import { paths } from '@/routers/paths'
 
 export function HomePage() {
-    function begin() {
-        
-    }
-    
+    const navigate = useNavigate()
     return (
-        <>
+        <div className='home-page'>
             {/* <h1 style={{ color: 'white' }}>Home Page</h1> */}
             <div className='circle'></div>
             <div className='circle1'></div>
@@ -30,8 +29,8 @@ export function HomePage() {
             </div>
             <main className="hero">
                 <h1>Syco<i>phone.</i></h1>
-                <button onClick={begin}>begin</button>
+                <button onClick={()=> navigate(paths.workshop)}>begin</button>
             </main>
-        </>
+        </div>
     )
 }
