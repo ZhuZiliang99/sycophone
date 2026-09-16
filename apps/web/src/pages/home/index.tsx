@@ -1,9 +1,12 @@
 import './index.css'
-import{ useNavigate } from 'react-router-dom'
-import { paths } from '@/routers/paths'
+// import{ useNavigate } from 'react-router-dom'
+import { LoginDialog } from '@/components/auth/LoginDialog'
+// import { paths } from '@/routers/paths'
+import { useState } from 'react';
 
 export function HomePage() {
-    const navigate = useNavigate()
+    // const navigate = useNavigate()
+    const [loginOpen, setLoginOpen] = useState(false);
     return (
         <div className='home-page'>
             {/* <h1 style={{ color: 'white' }}>Home Page</h1> */}
@@ -29,8 +32,10 @@ export function HomePage() {
             </div>
             <main className="hero">
                 <h1>Syco<i>phone.</i></h1>
-                <button onClick={()=> navigate(paths.workshop)}>begin</button>
+                {/* <button onClick={()=> navigate(paths.workshop)}>begin</button> */}
+                <button onClick={()=> setLoginOpen(true)}>begin</button>
             </main>
+            <LoginDialog open={loginOpen} onOpenChange={setLoginOpen} />
         </div>
     )
 }
