@@ -34,34 +34,32 @@ export function LoginDialog({open, onOpenChange}: LoginDialogProps) {
     }
 
     return (
-
         <Dialog open={open} onOpenChange={onOpenChange}>
-          <DialogContent>
+          <DialogContent className="rounded border border-1 border-[var(--login-border)] bg-[var(--bg)] text-[var(--login-text)] p-8 ring-0" >
             <DialogHeader>
-              <DialogTitle>Login</DialogTitle>
+              <DialogTitle className="font-[Georgia] text-4xl flex justify-center ">Login</DialogTitle>
               <DialogDescription>
                 Login to your account to continue
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit}>
-              <div className="gird gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" value={email} type="email" onChange={(e) => setEmail(e.target.value)} required></Input>
-              </div>
               <div className="grid gap-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
-              required
-            />
-          </div>
-          <Button type="submit" disabled={loading}>
-            {loading ? "Loading…" : "Logged in"}
-          </Button>
+                <Label htmlFor="email" >Email</Label>
+                <Input id="email"  value={email} type="email" onChange={(e) => setEmail(e.target.value)} required></Input>
+                <Label htmlFor="password">Password</Label>
+                    <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="current-password"
+                    required
+                    />
+                <Button type="submit" disabled={loading} className="border-[var(--acid)] ">
+                    {loading ? "Loading…" : "Log in"}
+                </Button>
+                </div>
+
             </form>
           </DialogContent>
 
