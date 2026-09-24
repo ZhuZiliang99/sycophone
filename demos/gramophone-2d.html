@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SYCOPHONE · 黑胶导航 2D 概念验证</title>
+<style>
+  :root{--bg:#0d0f0e;--ink:#eee9dc;--line:#55605a;--acid:#dfff61;--gold:#d4a878;
+        --serif:Georgia,'Times New Roman',serif;--ui:Arial,'PingFang SC','Microsoft YaHei',sans-serif;}
+  html,body{margin:0;height:100%;}
+  body{background:var(--bg);display:flex;align-items:center;justify-content:center;
+       font:400 14px/20px var(--ui);color:var(--ink);}
+  .tt-root{background:var(--bg);border:1px solid var(--line);color:var(--ink);width:min(720px,94vw);}
+  .tt-stage{position:relative;}
+  .tt-svg{display:block;width:100%;height:auto;}
+  /* 唱片旋转：transform-origin 定在圆心，用 viewBox 坐标系 */
+  .tt-disc{transform-box:view-box;transform-origin:300px 240px;}
+  @media (prefers-reduced-motion:no-preference){.tt-disc{animation:tt-spin 22s linear infinite;}}
+  @keyframes tt-spin{to{transform:rotate(360deg)}}
+  .tt-grs circle{fill:none;stroke:var(--ink);stroke-opacity:.13;}
+  .tt-grs circle:nth-child(odd){stroke-opacity:.2;}
+  .tt-rim{fill:none;stroke:var(--line);stroke-opacity:.8;}
+  .tt-labc{fill:none;stroke:var(--gold);stroke-opacity:.6;}
+  .tt-lab1{fill:var(--gold);font-size:12px;letter-spacing:.24em;text-anchor:middle;font-family:var(--ui);}
+  .tt-lab2{fill:var(--ink);opacity:.55;font-size:12px;letter-spacing:.12em;text-anchor:middle;font-family:var(--ui);}
+  .tt-spindle{fill:var(--ink);}
+  .tt-guide{fill:none;stroke:var(--acid);stroke-opacity:.35;stroke-dasharray:2 6;}
+  .tt-armline{stroke:var(--ink);stroke-width:2;}
+  .tt-cw{stroke:var(--ink);stroke-width:2;}
+  .tt-cwblock{fill:var(--ink);}
+  .tt-pivot{fill:var(--bg);stroke:var(--ink);stroke-width:1.5;}
+  .tt-needle{fill:var(--acid);}
+  /* 菜单按钮：HTML 覆盖层，绝对定位百分比 = viewBox 坐标换算，随容器缩放 */
+  .tt-item{position:absolute;transform:translate(-50%,-50%);background:rgba(13,15,14,.74);
+           border:1px solid var(--line);color:var(--ink);font:400 12px var(--ui);letter-spacing:.3em;
+           padding:6px 10px 6px 14px;cursor:pointer;border-radius:999px;transition:border-color .15s,color .15s;}
+  .tt-item:hover{border-color:var(--ink);}
+  .tt-item.on{border-color:var(--acid);color:var(--acid);box-shadow:0 0 12px rgba(223,255,97,.25);}
+  .tt-chip{position:absolute;left:3%;bottom:4%;font:400 12px var(--ui);letter-spacing:.26em;
+           opacity:.5;text-transform:uppercase;}
+  .tt-foot{display:flex;justify-content:space-between;padding:10px 16px;border-top:1px solid var(--line);
+           font:400 12px/18px var(--ui);letter-spacing:.06em;opacity:.9;}
+  .tt-foot .now{color:var(--acid);white-space:nowrap;}
+</style>
+</head>
+<body>
+<div class="tt-root">
+  <div class="tt-stage">
+    <svg class="tt-svg" viewBox="0 0 720 460" role="img" aria-label="黑胶唱片导航">
+      <g class="tt-disc">
+        <circle class="tt-rim" cx="300" cy="240" r="170"/>
+        <g class="tt-grs">
+          <circle cx="300" cy="240" r="62"/><circle cx="300" cy="240" r="70"/>
+          <circle cx="300" cy="240" r="78"/><circle cx="300" cy="240" r="86"/>
+          <circle cx="300" cy="240" r="94"/><circle cx="300" cy="240" r="102"/>
+          <circle cx="300" cy="240" r="110"/><circle cx="300" cy="240" r="118"/>
+          <circle cx="300" cy="240" r="126"/><circle cx="300" cy="240" r="134"/>
+          <circle cx="300" cy="240" r="142"/><circle cx="300" cy="240" r="150"/>
+          <circle cx="300" cy="240" r="158"/>
+        </g>
+        <circle class="tt-labc" cx="300" cy="240" r="52"/>
+        <text class="tt-lab1" x="300" y="236">SYCOPHONE</text>
+        <text class="tt-lab2" x="300" y="254">SIDE B · 33⅓</text>
+        <circle class="tt-spindle" cx="300" cy="240" r="3.5"/>
+      </g>
+      <polyline class="tt-guide" id="ttGuide" points=""/>
+      <g id="ttArm">
+        <line class="tt-cw" x1="630" y1="86" x2="684" y2="47"/>
+        <rect class="tt-cwblock" x="674" y="40" width="24" height="13" rx="3" transform="rotate(33 686 46)"/>
+        <line class="tt-armline" x1="630" y1="86" x2="416" y2="186"/>
+        <circle class="tt-pivot" cx="630" cy="86" r="7"/>
+        <circle class="tt-needle" cx="416" cy="186" r="3.5"/>
+      </g>
+    </svg>
+    <button class="tt-item" type="button" style="left:52.8%;top:27.2%">分析</button>
+    <button class="tt-item on" type="button" style="left:57.8%;top:40.4%">项目</button>
+    <button class="tt-item" type="button" style="left:57.7%;top:54.3%">历史</button>
+    <button class="tt-item" type="button" style="left:53.5%;top:65.1%">特效</button>
+    <button class="tt-item" type="button" style="left:47.1%;top:70.3%">VIP</button>
+    <span class="tt-chip">Turntable nav · 33⅓ rpm</span>
+  </div>
+  <div class="tt-foot"><span>2D 概念验证 · 唱针为阻尼弹簧转向</span><span class="now">唱针指向：项目 · groove 2/5</span></div>
+</div>
+
+<script>
+  var CX=300, CY=240, PX=630, PY=86, AX=416, AY=186;
+  var arm   = document.getElementById('ttArm'),
+      guide = document.getElementById('ttGuide'),
+      now   = document.querySelector('.tt-foot .now'),
+      btns  = [].slice.call(document.querySelectorAll('.tt-item'));
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // 唱臂默认画向 (AX,AY)，这是"0 度"基准
+  var base = Math.atan2(AY-PY, AX-PX) * 180/Math.PI;
+
+  // 菜单项：极坐标 → 直角坐标 → 唱臂目标角度（和 3D 版同一套数学）
+  var DEFS = [
+    {t:'分析', th:-55, r:140},
+    {t:'项目', th:-25, r:128},
+    {t:'历史', th:  5, r:116},
+    {t:'特效', th: 35, r:104},
+    {t:'VIP',  th: 65, r: 92}
+  ];
+  var items = DEFS.map(function(d, i){
+    var a = d.th*Math.PI/180;
+    var x = CX + d.r*Math.cos(a), y = CY + d.r*Math.sin(a);
+    btns[i].style.left = (x/720*100)+'%';   // 百分比定位，随容器缩放
+    btns[i].style.top  = (y/460*100)+'%';
+    return { t:d.t, x:x, y:y, rot: Math.atan2(y-PY, x-PX)*180/Math.PI - base };
+  });
+  guide.setAttribute('points', items.map(function(it){ return it.x+','+it.y; }).join(' '));
+
+  // 阻尼弹簧：v += (target-ang)*k - v*c;  ang += v —— 机械感的全部来源
+  var ang=0, vel=0, target=0, raf=null;
+  function paint(){ arm.setAttribute('transform','rotate('+ang+' '+PX+' '+PY+')'); }
+  function tick(){
+    vel += (target-ang)*0.022 - vel*0.16;
+    ang += vel;
+    paint();
+    if (Math.abs(target-ang)>0.06 || Math.abs(vel)>0.06) { raf=requestAnimationFrame(tick); }
+    else { ang=target; vel=0; paint(); raf=null; }
+  }
+  function sel(i){
+    btns.forEach(function(b,j){ b.classList.toggle('on', j===i); });
+    target = items[i].rot;
+    now.textContent = '唱针指向：'+items[i].t+' · groove '+(i+1)+'/5';
+    if (reduce) { ang=target; vel=0; paint(); return; }
+    if (raf) cancelAnimationFrame(raf);
+    vel += 2.4;                       // 落针瞬间一点初速
+    raf = requestAnimationFrame(tick);
+  }
+  btns.forEach(function(b,i){ b.addEventListener('click', function(){ sel(i); }); });
+</script>
+</body>
+</html>
