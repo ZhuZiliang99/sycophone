@@ -1,6 +1,6 @@
 export function Workshop() {
     return (
-        <div>
+        <div className="bg-black">
             <h1>Workshop</h1>
         </div>
     )

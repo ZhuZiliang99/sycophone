@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>flex 三个数怎么分</title>
+<style>
+  :root {
+    --bg: #f3efe6;
+    --ink: #1c1b19;
+    --muted: #5c574e;
+    --line: #c9c1b2;
+    --card: #fffdf8;
+    --a: #2f6284;
+    --b: #b86a28;
+    --c: #2f6b4a;
+    --a-soft: #d5e4ee;
+    --b-soft: #f3ddc8;
+    --c-soft: #d4e7db;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 18px/1.5 "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  main { max-width: 980px; margin: 0 auto; padding: 32px 20px 80px; }
+  h1 { font-size: 32px; line-height: 1.2; margin: 0 0 8px; }
+  .lead { color: var(--muted); margin: 0 0 24px; }
+  .presets { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  button {
+    font: inherit;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 6px 14px;
+    cursor: pointer;
+  }
+  button.on { border-color: var(--ink); background: var(--ink); color: var(--bg); }
+  .stage {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+  }
+  .parent-label { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+  .parent-label strong { font-variant-numeric: tabular-nums; }
+  input[type="range"] { width: 220px; }
+  .row {
+    display: flex;
+    height: 88px;
+    background:
+      repeating-linear-gradient(90deg, transparent, transparent 99px, rgba(0,0,0,.06) 100px);
+    outline: 2px solid var(--ink);
+    overflow: hidden;
+  }
+  .item {
+    min-width: 0;
+    overflow: hidden;
+    display: flex;
+    align-items: stretch;
+    color: white;
+    font-weight: 700;
+  }
+  .part {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    line-height: 1.2;
+    text-align: center;
+    padding: 4px;
+  }
+  .controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px; }
+  .card {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px;
+    background: var(--bg);
+  }
+  .card h2 { margin: 0 0 8px; font-size: 18px; }
+  label { display: grid; grid-template-columns: 3em 1fr 4.2em; align-items: center; gap: 8px; margin: 6px 0; font-size: 15px; }
+  label output { font-variant-numeric: tabular-nums; text-align: right; }
+  .unit { display: flex; gap: 6px; margin-top: 8px; }
+  .unit button { padding: 2px 10px; }
+  .cssline { margin: 8px 0 0; font-family: Consolas, monospace; font-size: 14px; }
+  .math {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 18px 8px;
+  }
+  .math h2 { margin: 0 0 8px; font-size: 20px; }
+  .math p { margin: 0 0 12px; }
+  .math .num { font-variant-numeric: tabular-nums; font-weight: 700; }
+  .note { color: var(--muted); font-size: 15px; }
+  .measured { font-size: 14px; color: var(--muted); margin-top: 8px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>flex 的三个数</h1>
+  <p class="lead">写法是 <code>flex: 放大 缩小 起始</code>。下面这条横条是浏览器真的在排，算式用的是同一组数。</p>
+  <div class="presets">
+    <button type="button" id="pGrow" class="on">放大：把空余按份数切开</button>
+    <button type="button" id="pPct">百分比：先换成像素</button>
+    <button type="button" id="pFull">起点已经占满</button>
+    <button type="button" id="pShrink">缩小：空间不够</button>
+  </div>
+
+  <section class="stage">
+    <div class="parent-label">
+      <span>父盒子宽度 <strong id="parentOut">600px</strong></span>
+      <input id="parent" type="range" min="300" max="900" value="600" />
+    </div>
+    <div class="row" id="row"></div>
+    <p class="measured" id="measured"></p>
+    <div class="controls" id="controls"></div>
+  </section>
+
+  <section class="math" id="math"></section>
+</main>
+<script>
+var NAMES = ["A", "B", "C"];
+var COLORS = ["#2f6284", "#b86a28", "#2f6b4a"];
+var SOFT = ["#7fa3ba", "#e0b089", "#7eae93"];
+
+var parent = 600;
+var items = [
+  { grow: 1, shrink: 1, basis: 100, unit: "px" },
+  { grow: 2, shrink: 1, basis: 100, unit: "px" },
+  { grow: 1, shrink: 1, basis: 100, unit: "px" }
+];
+
+function fmt(n) {
+  var r = Math.round(n * 10) / 10;
+  if (Object.is(r, -0)) r = 0;
+  return Number.isInteger(r) ? String(r) : r.toFixed(1);
+}
+
+function basisPx(item) {
+  return item.unit === "%" ? parent * item.basis / 100 : item.basis;
+}
+
+function solve() {
+  var bases = items.map(basisPx);
+  var sumBase = bases.reduce(function (a, b) { return a + b; }, 0);
+  var free = parent - sumBase;
+  if (free >= -0.05) {
+    var sumGrow = items.reduce(function (a, it) { return a + it.grow; }, 0);
+    var extras = items.map(function (it) {
+      return sumGrow === 0 ? 0 : free * it.grow / sumGrow;
+    });
+    return {
+      mode: "grow", bases: bases, sumBase: sumBase, free: free,
+      sumGrow: sumGrow, extras: extras,
+      finals: bases.map(function (b, i) { return b + extras[i]; })
+    };
+  }
+  var overflow = -free;
+  var shares = items.map(function (it, i) { return it.shrink * bases[i]; });
+  var sumShares = shares.reduce(function (a, b) { return a + b; }, 0);
+  var cuts = shares.map(function (s) {
+    return sumShares === 0 ? 0 : overflow * s / sumShares;
+  });
+  return {
+    mode: "shrink", bases: bases, sumBase: sumBase, free: free,
+    overflow: overflow, shares: shares, sumShares: sumShares, cuts: cuts,
+    finals: bases.map(function (b, i) { return b - cuts[i]; })
+  };
+}
+
+function render() {
+  var result = solve();
+  document.getElementById("parentOut").textContent = parent + "px";
+  var row = document.getElementById("row");
+  row.style.width = parent + "px";
+  row.innerHTML = "";
+  result.finals.forEach(function (finalPx, i) {
+    var item = items[i];
+    var el = document.createElement("div");
+    el.className = "item";
+    el.style.flex = item.grow + " " + item.shrink + " " + item.basis + item.unit;
+    el.style.background = SOFT[i];
+    var base = result.bases[i];
+    if (result.mode === "grow") {
+      el.appendChild(part(fmt(base), base, COLORS[i]));
+      if (result.extras[i] > 0.5) el.appendChild(part("+" + fmt(result.extras[i]), result.extras[i], SOFT[i], COLORS[i]));
+    } else {
+      el.appendChild(part(fmt(finalPx), Math.max(finalPx, 0), COLORS[i]));
+    }
+    row.appendChild(el);
+  });
+
+  document.getElementById("controls").innerHTML = items.map(function (item, i) {
+    return (
+      '<div class="card" style="border-top: 4px solid ' + COLORS[i] + '">' +
+        '<h2>' + NAMES[i] + '</h2>' +
+        slider(i, "grow", "放大", item.grow, 0, 5, 1) +
+        slider(i, "shrink", "缩小", item.shrink, 0, 5, 1) +
+        slider(i, "basis", "起始", item.basis, 0, item.unit === "%" ? 100 : 500, item.unit === "%" ? 5 : 10) +
+        '<div class="unit">' +
+          '<button type="button" data-unit="' + i + ':px"' + (item.unit === "px" ? ' class="on"' : "") + '>px</button>' +
+          '<button type="button" data-unit="' + i + ':%"' + (item.unit === "%" ? ' class="on"' : "") + '>%</button>' +
+        '</div>' +
+        '<p class="cssline">flex: ' + item.grow + ' ' + item.shrink + ' ' + item.basis + item.unit + '</p>' +
+      '</div>'
+    );
+  }).join("");
+
+  document.getElementById("math").innerHTML = story(result);
+
+  requestAnimationFrame(function () {
+    var nodes = row.children;
+    var bits = [];
+    for (var i = 0; i < nodes.length; i++) {
+      bits.push(NAMES[i] + " " + Math.round(nodes[i].getBoundingClientRect().width) + "px");
+    }
+    document.getElementById("measured").textContent = "浏览器量到的宽度：" + bits.join("，");
+  });
+}
+
+function part(text, width, bg, color) {
+  var el = document.createElement("div");
+  el.className = "part";
+  el.style.width = Math.max(width, 0) + "px";
+  el.style.background = bg;
+  el.style.color = color || "white";
+  el.textContent = width >= 36 ? text : "";
+  return el;
+}
+
+function slider(i, key, name, value, min, max, step) {
+  return (
+    '<label>' + name +
+    '<input data-key="' + i + ':' + key + '" type="range" min="' + min + '" max="' + max + '" step="' + step + '" value="' + value + '">' +
+    '<output>' + value + (key === "basis" ? items[i].unit : "") + '</output></label>'
+  );
+}
+
+function story(r) {
+  var lines = r.bases.map(function (b, i) {
+    var from = items[i].unit === "%"
+      ? items[i].basis + "% × " + parent + " = "
+      : "";
+    return NAMES[i] + " 起始 " + from + '<span class="num">' + fmt(b) + "px</span>";
+  });
+  var html = "<h2>1. 起始尺寸，先全部换成像素</h2><p>" + lines.join("<br>") +
+    "<br>合计 <span class=\"num\">" + fmt(r.sumBase) + "px</span></p>";
+  html += "<p class=\"note\">百分号只出现在这一步：它是父盒子宽度的百分之多少。乘完得到像素，后面的分配不再看百分号。</p>";
+
+  if (r.mode === "grow") {
+    html += "<h2>2. 空余 = 父盒子 − 起始合计</h2>";
+    html += "<p><span class=\"num\">" + parent + " − " + fmt(r.sumBase) + " = " + fmt(r.free) + "px</span></p>";
+    html += "<p class=\"note\">缩小这次不参加。起始合计没有超过父盒子，没有像素需要让出来。先点上面的「缩小：空间不够」，再拖缩小；而且要让三项的缩小不一样，一起放大同样的倍数，比例不变，宽度也不会变。</p>";
+    if (r.free <= 0.05) {
+      html += "<p>空余是 0。放大权重不再起作用，最终宽度就是起始尺寸。</p>";
+    } else if (r.sumGrow === 0) {
+      html += "<p>还有空余，但三个放大权重都是 0，谁也不伸长。空余留在右边。</p>";
+    } else {
+      var share = r.free / r.sumGrow;
+      html += "<h2>3. 空余按放大权重分成几份</h2>";
+      html += "<p>权重合计 <span class=\"num\">" + fmt(r.sumGrow) + "</span>。" +
+        "每份 = " + fmt(r.free) + " ÷ " + fmt(r.sumGrow) + " = <span class=\"num\">" + fmt(share) + "px</span>。</p>";
+      html += "<p>" + r.extras.map(function (extra, i) {
+        return NAMES[i] + " 有 " + items[i].grow + " 份，拿 " + fmt(r.free) + " × " + items[i].grow + "/" + fmt(r.sumGrow) +
+          " = <span class=\"num\">" + fmt(extra) + "px</span>";
+      }).join("<br>") + "</p>";
+    }
+    html += "<h2>4. 最终 = 起始 + 分到的空余</h2><p>" + r.finals.map(function (finalPx, i) {
+      return NAMES[i] + " " + fmt(r.bases[i]) + " + " + fmt(r.extras[i]) + " = <span class=\"num\">" + fmt(finalPx) + "px</span>";
+    }).join("<br>") + "</p>";
+  } else {
+    html += "<h2>2. 起始合计比父盒子大，要缩小</h2>";
+    html += "<p>多出来 <span class=\"num\">" + fmt(r.sumBase) + " − " + parent + " = " + fmt(r.overflow) + "px</span></p>";
+    if (r.sumShares === 0) {
+      html += "<p>缩小权重都是 0，谁也不让。多出来的部分会溢出父盒子。</p>";
+    } else {
+      html += "<h2>3. 缩小的份数 = 缩小权重 × 自己的起始像素</h2>";
+      html += "<p>" + r.shares.map(function (s, i) {
+        return NAMES[i] + " " + items[i].shrink + " × " + fmt(r.bases[i]) + " = <span class=\"num\">" + fmt(s) + "</span>";
+      }).join("<br>") +
+        "<br>份数合计 <span class=\"num\">" + fmt(r.sumShares) + "</span></p>";
+      html += "<p class=\"note\">缩小不是只看权重。起始尺寸越大，同样的权重让出的像素越多。</p>";
+      html += "<h2>4. 最终 = 起始 − 让出的像素</h2><p>" + r.cuts.map(function (cut, i) {
+        return NAMES[i] + " 让出 " + fmt(r.overflow) + " × " + fmt(r.shares[i]) + "/" + fmt(r.sumShares) +
+          " = " + fmt(cut) + "，最终 <span class=\"num\">" + fmt(r.finals[i]) + "px</span>";
+      }).join("<br>") + "</p>";
+    }
+  }
+  return html;
+}
+
+function applyPreset(name) {
+  document.querySelectorAll(".presets button").forEach(function (b) { b.classList.remove("on"); });
+  if (name === "grow") {
+    parent = 600;
+    items = [
+      { grow: 1, shrink: 1, basis: 100, unit: "px" },
+      { grow: 2, shrink: 1, basis: 100, unit: "px" },
+      { grow: 1, shrink: 1, basis: 100, unit: "px" }
+    ];
+    document.getElementById("pGrow").classList.add("on");
+  } else if (name === "pct") {
+    parent = 600;
+    items = [
+      { grow: 1, shrink: 1, basis: 10, unit: "%" },
+      { grow: 1, shrink: 1, basis: 20, unit: "%" },
+      { grow: 1, shrink: 1, basis: 30, unit: "%" }
+    ];
+    document.getElementById("pPct").classList.add("on");
+  } else if (name === "full") {
+    parent = 600;
+    items = [
+      { grow: 5, shrink: 1, basis: 50, unit: "%" },
+      { grow: 1, shrink: 1, basis: 25, unit: "%" },
+      { grow: 1, shrink: 1, basis: 25, unit: "%" }
+    ];
+    document.getElementById("pFull").classList.add("on");
+  } else {
+    parent = 600;
+    items = [
+      { grow: 0, shrink: 1, basis: 200, unit: "px" },
+      { grow: 0, shrink: 1, basis: 200, unit: "px" },
+      { grow: 0, shrink: 1, basis: 400, unit: "px" }
+    ];
+    document.getElementById("pShrink").classList.add("on");
+  }
+  document.getElementById("parent").value = String(parent);
+  render();
+}
+
+document.getElementById("parent").addEventListener("input", function (e) {
+  parent = Number(e.target.value);
+  document.querySelectorAll(".presets button").forEach(function (b) { b.classList.remove("on"); });
+  render();
+});
+document.body.addEventListener("input", function (e) {
+  var key = e.target.getAttribute("data-key");
+  if (!key) return;
+  var bits = key.split(":");
+  items[Number(bits[0])][bits[1]] = Number(e.target.value);
+  document.querySelectorAll(".presets button").forEach(function (b) { b.classList.remove("on"); });
+  render();
+});
+document.body.addEventListener("click", function (e) {
+  var unit = e.target.getAttribute("data-unit");
+  if (unit) {
+    var bits = unit.split(":");
+    var item = items[Number(bits[0])];
+    item.unit = bits[1];
+    if (item.unit === "%" && item.basis > 100) item.basis = 100;
+    render();
+    return;
+  }
+  if (e.target.id === "pGrow") applyPreset("grow");
+  if (e.target.id === "pPct") applyPreset("pct");
+  if (e.target.id === "pFull") applyPreset("full");
+  if (e.target.id === "pShrink") applyPreset("shrink");
+});
+
+render();
+</script>
+</body>
+</html>
