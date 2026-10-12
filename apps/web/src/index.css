@@ -143,3 +143,17 @@ body {
     @apply font-sans;
   }
 }
+
+/* 覆盖浏览器 autofill 强制的蓝色背景和文字颜色 */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--bg) inset;
+  -webkit-text-fill-color: var(--login-text);
+  caret-color: var(--login-text);
+}
+
+input:autofill {
+  background-color: var(--bg) !important;
+  color: var(--login-text) !important;
+}
