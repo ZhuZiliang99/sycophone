@@ -31,10 +31,10 @@ public class AuthController {
         String username = request.username();
         String password = request.password();
         if (username == null || username.isBlank() || password == null || password.length() < 6) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "用户名不能为空，密码至少 6 位");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is required, password must be at least 6 characters");
         }
         if (users.findByUsername(username).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "用户名已被注册");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already exists");
         }
         User user = new User();
         user.setUsername(username);
@@ -47,9 +47,9 @@ public class AuthController {
     @PostMapping("/login")
     public AuthResponse login(@RequestBody LoginRequest request) {
         User user = users.findByUsername(request.username())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "用户名或密码错误"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password"));
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "用户名或密码错误");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password");
         }
         return new AuthResponse(jwtService.generateToken(user.getUsername(), user.getRole().name()),
                 user.getUsername(), user.getRole().name());
